@@ -3,11 +3,8 @@ package cs455.overlay.node;
 import cs455.overlay.wireformats.Event;
 
 /**
- * Created by MyGarden on 17/2/8.
+ * Created by MyGarden on 17/2/10.
  */
 public interface Node {
-
-    void onEvent(Event e);
-
+    public void onEvent(Event e);
 }
-
