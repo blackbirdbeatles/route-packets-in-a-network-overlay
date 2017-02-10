@@ -1,5 +1,6 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 
 /**
@@ -11,10 +12,18 @@ public class MessagingNode implements Node {
     private int sendTracker;
     private int receiveTracker;
     private int relayTracker;
+    private long sendSum;
+    private long receiveSum;
+    private TCPServerThread tcpServerThread;
 
-    public MessagingNode(int port) throws Exception {
+    public MessagingNode(int port){
         listeningPort = port;
-
+        sendTracker = 0;
+        receiveTracker = 0;
+        relayTracker = 0;
+        sendSum = 0;
+        receiveSum = 0;
+        tcpServerThread = new TCPServerThread(port);
     }
 
 
@@ -24,8 +33,9 @@ public class MessagingNode implements Node {
     }
 
     public static void main(String [] args){
+
         int port = Integer.parseInt(args[0]);
-        MessagingNode msgNode(port);
+        MessagingNode msgNode = new MessagingNode(port);
 
         try {
 
