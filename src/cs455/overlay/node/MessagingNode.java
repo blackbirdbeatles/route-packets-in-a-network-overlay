@@ -16,7 +16,7 @@ public class MessagingNode implements Node {
     private long receiveSum;
     private TCPServerThread tcpServerThread;
 
-    public MessagingNode(int port){
+    public MessagingNode(int port) throws Exception{
         listeningPort = port;
         sendTracker = 0;
         receiveTracker = 0;
@@ -32,7 +32,7 @@ public class MessagingNode implements Node {
 
     }
 
-    public static void main(String [] args){
+    public static void main(String [] args) throws Exception{
 
         int port = Integer.parseInt(args[0]);
         MessagingNode msgNode = new MessagingNode(port);

@@ -5,7 +5,7 @@ import java.net.*;
 /**
  * Created by MyGarden on 17/2/9.
  */
-public class TCPServerThread extends Thread{
+public class TCPServerThread implements Runnable{
 
     private ServerSocket serverSocket;
 
