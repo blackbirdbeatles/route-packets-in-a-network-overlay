@@ -39,7 +39,9 @@ public class MessagingNode implements Node {
 
         try {
 
-
+            TCPServerThread tcpServerThread_runnable = new TCPServerThread(port);
+            Thread tcpServerThread = new Thread(tcpServerThread_runnable );
+            tcpServerThread.start();
 
         }catch(Exception e){
             e.getMessage();

@@ -28,6 +28,16 @@ public class TCPReceiverThread implements Runnable {
         while (socket != null){
             try{
                 dataLength = din.readInt();
+
+                byte [] data = new byte[dataLength];
+                din.readFully(data,0, dataLength);
+
+
+                //TODO
+                //RESPONSE TO DIFFERENT MESSAGE RECEIVED
+
+
+
             }catch (SocketException se){
                 System.out.println(se.getMessage());
                 break;
