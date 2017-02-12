@@ -1,7 +1,12 @@
 package cs455.overlay.wireformats;
 
+
+import java.io.IOException;
+
 /**
- * Created by MyGarden on 17/2/10.
+ * Created by MyGarden on 17/2/11.
  */
-public class Event {
+public interface Event {
+    public byte[] getBytes() throws IOException;
+    public Event decodebyte() throws IOException;
 }

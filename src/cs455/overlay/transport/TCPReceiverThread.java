@@ -33,8 +33,7 @@ public class TCPReceiverThread implements Runnable {
                 din.readFully(data,0, dataLength);
 
 
-                //TODO
-                //RESPONSE TO DIFFERENT MESSAGE RECEIVED
+                //TODO: RESPONSE TO DIFFERENT MESSAGE RECEIVED
 
 
 

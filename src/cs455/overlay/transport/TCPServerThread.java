@@ -1,16 +1,24 @@
 package cs455.overlay.transport;
 
+import java.io.IOException;
 import java.net.*;
 
 /**
  * Created by MyGarden on 17/2/9.
  */
-public class TCPServerThread implements Runnable{
+public class TCPServerThread extends Thread{
 
     private ServerSocket serverSocket;
 
-    public TCPServerThread(int port) throws Exception {
-        serverSocket = new ServerSocket(port);
+
+    public TCPServerThread(int port){
+        try {
+            serverSocket = new ServerSocket(port);
+        }
+        catch (IOException ioe){
+            System.out.println(ioe.getMessage());
+
+        }
     }
     public void run(){
 
@@ -26,5 +34,13 @@ public class TCPServerThread implements Runnable{
             }
 
         }
+    }
+
+    public int getListeningPort(){
+        return serverSocket.getLocalPort();
+    }
+    public String getHostName() throws IOException{
+        InetAddress IP = InetAddress.getLocalHost();
+        return IP.toString();
     }
 }
