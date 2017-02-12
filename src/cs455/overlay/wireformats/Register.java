@@ -1,14 +1,11 @@
 package cs455.overlay.wireformats;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Created by MyGarden on 17/2/11.
  */
-public class Register {
+public class Register implements Event{
 
     MessageType type;
     String IP;
@@ -20,7 +17,7 @@ public class Register {
         this.port = port;
     }
 
-    public byte[] getByte() throws IOException {
+    public byte[] getBytes() throws IOException {
         byte[] marshalledBytes = null;
         ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();
         DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
@@ -45,9 +42,28 @@ public class Register {
         return marshalledBytes;
     }
 
-    public static Event decodeByte() throws IOException{
-        Event e;
-        return e;
+    public static Register decodeByte(byte[] marshalledBytes) throws IOException{
+        ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
+        DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
+
+        //readin type, but actually already known
+        din.readInt();
+
+        //readin IP string
+        int IPLength = din.readInt();
+        byte[] IPBytes = new byte[IPLength];
+        din.readFully(IPBytes);
+        String IP = new String(IPBytes);
+
+        //readin port
+        int port = din.readInt();
+
+        baInputStream.close();
+        din.close();
+
+        return new Register(port,IP);
+
+
     }
 
 

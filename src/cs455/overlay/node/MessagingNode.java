@@ -74,7 +74,7 @@ public class MessagingNode implements Node {
 
 
         //send register message
-        byte[] toSend = register_msg.getByte();
+        byte[] toSend = register_msg.getBytes();
 
         //send the marshalled data
         msgNode.tcpSenderToRegistry.sendData(toSend);

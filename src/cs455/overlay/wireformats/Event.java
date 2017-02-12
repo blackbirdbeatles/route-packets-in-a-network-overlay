@@ -8,5 +8,7 @@ import java.io.IOException;
  */
 public interface Event {
     public byte[] getBytes() throws IOException;
-    public Event decodebyte() throws IOException;
+    public static Event decodebyte(byte[] marshalledBytes) throws IOException{
+        return null;
+    };
 }
