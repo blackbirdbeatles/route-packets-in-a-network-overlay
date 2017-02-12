@@ -1,5 +1,7 @@
 package cs455.overlay.transport;
 
+import cs455.overlay.node.Node;
+
 import java.io.IOException;
 import java.net.*;
 
@@ -9,9 +11,10 @@ import java.net.*;
 public class TCPServerThread extends Thread{
 
     private ServerSocket serverSocket;
+    private Node parent;
 
 
-    public TCPServerThread(int port){
+    public TCPServerThread(int port, Node parent){
         try {
             serverSocket = new ServerSocket(port);
         }
@@ -19,6 +22,7 @@ public class TCPServerThread extends Thread{
             System.out.println(ioe.getMessage());
 
         }
+        this.parent = parent;
     }
     public void run(){
 
@@ -27,7 +31,7 @@ public class TCPServerThread extends Thread{
             try {
                 Socket socket = serverSocket.accept();
                 System.out.println("Just connected to " + socket.getRemoteSocketAddress());
-                TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(socket);
+                TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(socket, parent);
 
             }catch (Exception e){
                 System.out.println(e.getMessage());

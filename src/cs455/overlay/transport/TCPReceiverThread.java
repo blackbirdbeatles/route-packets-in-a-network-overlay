@@ -1,5 +1,9 @@
 package cs455.overlay.transport;
 
+import cs455.overlay.node.Node;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.Judge;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -9,18 +13,20 @@ import java.net.SocketException;
 /**
  * Created by MyGarden on 17/2/9.
  */
-public class TCPReceiverThread implements Runnable {
+public class TCPReceiverThread extends Thread {
 
     private Socket socket;
     private DataInputStream din;
+    private Node parent;
 
-    public TCPReceiverThread(Socket socket) throws IOException{
+    public TCPReceiverThread(Socket socket, Node parent) throws IOException{
         this.socket = socket;
         try {
             din = new DataInputStream(socket.getInputStream());
         } catch (IOException ioe){
             System.out.println(ioe.getMessage());
         }
+        this.parent = parent;
     }
     public void run(){
 
@@ -33,7 +39,14 @@ public class TCPReceiverThread implements Runnable {
                 din.readFully(data,0, dataLength);
 
 
-                //TODO: RESPONSE TO DIFFERENT MESSAGE RECEIVED
+                //RESPONSE TO DIFFERENT MESSAGE RECEIVED
+
+                    //First, judge the type of the message, and transfer it to the certain type of unmarshalling method
+                    //then get a certain type of event(message)
+                Event event = Judge.decodeByte(data);
+
+                    //call the parent to deal with this event
+                parent.onEvent(event);
 
 
 

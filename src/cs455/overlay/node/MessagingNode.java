@@ -1,5 +1,6 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
@@ -14,14 +15,22 @@ import java.net.Socket;
 public class MessagingNode implements Node {
 
     private int listeningPort;
+
     private int sendTracker;
     private int receiveTracker;
     private int relayTracker;
     private long sendSum;
     private long receiveSum;
+
     private TCPServerThread tcpServerThread;
+
+
     private TCPSender tcpSenderToRegistry;
+    private TCPReceiverThread tcpReceiverFromRegistry;
+
+
     private TCPSender [] tcpSenderToMsgingNode;
+    private TCPReceiverThread [] tcpReceiverFromMsgingNode;
 
 
     public MessagingNode(){
@@ -47,13 +56,13 @@ public class MessagingNode implements Node {
             registryPort = Integer.parseInt(args[1]);
         }
         catch (NumberFormatException nfe){
-            System.out.println(nfe.getMessage());
+            System.out.println("Please input valid port");
             return;
         }
 
         //open the serverSocket
         MessagingNode msgNode = new MessagingNode();
-        msgNode.tcpServerThread = new TCPServerThread(0);
+        msgNode.tcpServerThread = new TCPServerThread(0, msgNode);
         msgNode.tcpServerThread.start();
 
         //get the chosen listening port
@@ -66,17 +75,21 @@ public class MessagingNode implements Node {
             Socket socketToRegistry = new Socket(registryHost, registryPort);
             msgNode.tcpSenderToRegistry = new TCPSender(socketToRegistry);
 
+            //create receiver thread with Registry
+            msgNode.tcpReceiverFromRegistry = new TCPReceiverThread(socketToRegistry, msgNode);
+            msgNode.tcpReceiverFromRegistry.start();
+
         //register
 
-        // generate register message format
+          // generate register message format
         Register register_msg;
         register_msg = new Register(msgNode.listeningPort, msgNode.tcpServerThread.getHostName());
 
 
-        //send register message
+          //send register message
         byte[] toSend = register_msg.getBytes();
 
-        //send the marshalled data
+          //send the marshalled data
         msgNode.tcpSenderToRegistry.sendData(toSend);
 
         }
@@ -84,6 +97,8 @@ public class MessagingNode implements Node {
             System.out.println(ioe.getMessage());
             return;
         }
+
+
 
 
 
