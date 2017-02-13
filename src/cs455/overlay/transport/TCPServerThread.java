@@ -1,5 +1,6 @@
 package cs455.overlay.transport;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import cs455.overlay.node.Node;
 
 import java.io.IOException;
@@ -44,8 +45,17 @@ public class TCPServerThread extends Thread{
     public int getListeningPort(){
         return serverSocket.getLocalPort();
     }
-    public String getHostName() throws IOException{
-        InetAddress IP = InetAddress.getLocalHost();
-        return IP.toString();
+
+    public String getHostName() {
+        String IP;
+        try {
+            IP = InetAddress.getLocalHost().getHostAddress();
+            return IP;
+        } catch (IOException ioe){
+            System.out.println("fail to get host name");
+            System.exit(-1);
+
+        }
+        return null;
     }
 }

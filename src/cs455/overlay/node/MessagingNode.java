@@ -43,11 +43,7 @@ public class MessagingNode implements Node {
 
     public void registerResponseProcess(RegisterResponse registerResponse, Socket socket){
         boolean code = registerResponse.getCode();
-        if (code)
-            System.out.println("Successfully registered");
-        else
-            System.out.println("Fail to register");
-
+        System.out.println(registerResponse.getInfo());
     }
 
     public void onEvent(Event event, Socket socket){

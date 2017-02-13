@@ -27,26 +27,48 @@ public class Registry implements Node {
         registeredNodeList = new HashMap<>();
     }
 
-    private boolean isValidRegistration(String IP, String realIP){
-        boolean result = false;
-        if (IP.equals(realIP) && registeredNodeList.containsKey(IP))
-            result = true;
-        return result;
+    //return  0    valid Register
+    //return  1    fail: IP is not real
+    //return  -1   fail: already registered
+
+    private boolean isIdenticalIP(String IP, String realIP){
+        if (realIP.equals("127.0.0.1")){
+            if (this.tcpServerThread.getHostName().equals(IP))
+                return true;
+        }
+        if (IP.equals(realIP))
+            return true;
+        return false;
     }
+    private int isValidRegistration(String IP, String realIP,int port){
+        boolean isIdenticalHost = isIdenticalIP(IP, realIP);
+        if (isIdenticalHost && !registeredNodeList.containsKey(IP+":"+String.valueOf(port)))
+            return 0;
+        if (!isIdenticalHost)
+            return 1;
+        if (isIdenticalHost && registeredNodeList.containsKey(IP+":"+String.valueOf(port)))
+            return -1;
+
+        return -2;
+    }
+
 
     private void registerProcess(Register register, Socket socket){
 
         System.out.println("Received register event from " + socket.getRemoteSocketAddress().toString());
 
-        String IP = register.getIP(register);
-        String realIP = socket.getRemoteSocketAddress().toString();
-        int port = register.getPort(register);
+        String IP = register.getIP();
+        String realIP = socket.getInetAddress().getHostAddress();
+        int port = register.getPort();
 
         //to prevent multi-threads access the registeredNodeList at the same time
         synchronized (this.registeredNodeList) {
-            if (isValidRegistration(IP,realIP )) {
+            int isValid = isValidRegistration(IP,realIP,port );
+
+            //if register succeed, send success response
+            if (isValid == 0) {
                 //add the current node to registeredNodeList
-                registeredNodeList.put(IP, port);
+                registeredNodeList.put(IP+ ":" +String.valueOf(port), 1);
 
                 //send response packet to the messaging node
                     String info = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + registeredNodeList.size() + ")";
@@ -63,10 +85,18 @@ public class Registry implements Node {
                     }
 
 
-
             }
+
+            //if registering fail, send failure response
             else{
-                String info = "Registration request failed";
+                String info;
+                if (isValid == 1)
+                    info = "Fail to Register: IP is not real";
+                else
+                    if (isValid == -1)
+                        info = "Fail to Register: IP already registered";
+                    else
+                        info = "The value of isValid is -2";
                 RegisterResponse registerResponse = new RegisterResponse( false, info);
                 try {
                     TCPSender.sendData(registerResponse.getBytes(), socket);
@@ -77,11 +107,9 @@ public class Registry implements Node {
             }
         }
 
-
-
-
-
     };
+
+
 
     //response to different kind of events
     public void onEvent(Event event, Socket socket){

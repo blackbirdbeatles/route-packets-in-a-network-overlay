@@ -1,20 +1,19 @@
 package cs455.overlay.wireformats;
 
-import cs455.overlay.node.Node;
-
 import java.io.*;
 
 /**
- * Created by MyGarden on 17/2/11.
+ * Created by MyGarden on 17/2/13.
  */
-public class Register implements Event{
+public class Deregister implements Event{
+
 
     Type type;
     String IP;
     int port;
 
-    public Register(int port, String IP){
-        type = Type.REGISTER_REQUEST;
+    public Deregister(int port, String IP){
+        type = Type.DEREGISTER_REQUEST;
         this.IP = IP;
         this.port = port;
     }
@@ -45,7 +44,7 @@ public class Register implements Event{
         return marshalledBytes;
     }
 
-    public static Register decodeByte(byte[] marshalledBytes) throws IOException{
+    public static Deregister decodeByte(byte[] marshalledBytes) throws IOException{
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
@@ -64,7 +63,7 @@ public class Register implements Event{
         baInputStream.close();
         din.close();
 
-        return new Register(port,IP);
+        return new Deregister(port,IP);
 
 
     }
@@ -78,5 +77,4 @@ public class Register implements Event{
     public int getPort(){
         return this.port;
     }
-
 }

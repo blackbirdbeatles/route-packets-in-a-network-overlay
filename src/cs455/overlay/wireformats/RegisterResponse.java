@@ -77,4 +77,7 @@ public class RegisterResponse implements Event{
     public boolean getCode(){
         return this.code;
     }
+    public String getInfo() {
+        return this.info;
+    }
 }
