@@ -6,23 +6,25 @@ import java.util.Map;
 /**
  * Created by MyGarden on 17/2/11.
  */
-public enum MessageType {
-    REGISTER_REQUEST(1);
+public enum Type {
+
+    REGISTER_REQUEST(1),
+    REGISTER_RESPONSE(2);
 
     private int value;
-    private static Map<Integer, MessageType> map = new HashMap<Integer, MessageType>();
+    private static Map<Integer, Type> map = new HashMap<Integer, Type>();
 
-    private MessageType(int value){
+    private Type(int value){
         this.value = value;
     }
 
     static {
-        for (MessageType messageType : MessageType.values()){
+        for (Type messageType : Type.values()){
             map.put(messageType.value, messageType);
         }
     }
 
-    public static MessageType valueOf(int messageType){
+    public static Type valueOf(int messageType){
         return map.get(messageType);
     }
 
@@ -30,4 +32,3 @@ public enum MessageType {
         return value;
     }
 }
-

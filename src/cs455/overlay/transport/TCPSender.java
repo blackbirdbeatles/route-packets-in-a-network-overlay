@@ -8,6 +8,7 @@ import java.net.Socket;
 /**
  * Created by MyGarden on 17/2/9.
  */
+/*
 public class TCPSender {
 
     private Socket socket;
@@ -24,5 +25,21 @@ public class TCPSender {
         dout.writeInt(dataLength);
         dout.write(dataToSend,0,dataLength);
         dout.flush();
+    }
+}
+*/
+
+public class TCPSender {
+
+    public static void sendData(byte[] dataToSend, Socket socket) throws IOException {
+
+        //to prevent multi-threads use the same socket between two nodes (e.g task1: A relays packets to B, task2: A sends packets to B directly)
+        synchronized (socket) {
+            DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
+            int dataLength = dataToSend.length;
+            dout.writeInt(dataLength);
+            dout.write(dataToSend, 0, dataLength);
+            dout.flush();
+        }
     }
 }

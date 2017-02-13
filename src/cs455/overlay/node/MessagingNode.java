@@ -29,7 +29,6 @@ public class MessagingNode implements Node {
     private TCPReceiverThread tcpReceiverFromRegistry;
 
 
-    private TCPSender [] tcpSenderToMsgingNode;
     private TCPReceiverThread [] tcpReceiverFromMsgingNode;
 
 
@@ -43,7 +42,7 @@ public class MessagingNode implements Node {
 
 
 
-    public void onEvent(Event e){
+    public void onEvent(Event e, Socket socket){
 
     }
 
@@ -73,7 +72,6 @@ public class MessagingNode implements Node {
         //connect to the server
         try {
             Socket socketToRegistry = new Socket(registryHost, registryPort);
-            msgNode.tcpSenderToRegistry = new TCPSender(socketToRegistry);
 
             //create receiver thread with Registry
             msgNode.tcpReceiverFromRegistry = new TCPReceiverThread(socketToRegistry, msgNode);
@@ -90,7 +88,7 @@ public class MessagingNode implements Node {
         byte[] toSend = register_msg.getBytes();
 
           //send the marshalled data
-        msgNode.tcpSenderToRegistry.sendData(toSend);
+        TCPSender.sendData(toSend,socketToRegistry);
 
         }
         catch (IOException ioe){

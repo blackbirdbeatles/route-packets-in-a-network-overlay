@@ -1,8 +1,15 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.Register;
+import cs455.overlay.wireformats.RegisterResponse;
+import cs455.overlay.wireformats.Type;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.HashMap;
 
 /**
  * Created by MyGarden on 17/2/8.
@@ -11,17 +18,61 @@ public class Registry implements Node {
 
     private int port;
     private TCPServerThread tcpServerThread;
-
+    private HashMap<String, Integer> registeredNodeList;                     //think of what kind of data structure is the best choice
 
     public Registry(int port){
 
         this.port = port;
-
+        registeredNodeList = new HashMap<>();
     }
 
-    //response to different kind of events
-    public void onEvent(Event e){
+    private boolean isValidRegistration(String IP, String realIP){
+        boolean result = false;
+        if (IP.equals(realIP) && registeredNodeList.containsKey(IP))
+            result = true;
+        return result;
+    }
 
+    private void registerProcess(Register register, Socket socket){
+        String IP = register.getIP(register);
+        String realIP = socket.getRemoteSocketAddress().toString();
+        int port = register.getPort(register);
+
+        //to prevent multi-threads access the registeredNodeList at the same time
+        synchronized (this.registeredNodeList) {
+            if (isValidRegistration(IP,realIP )) {
+                //add the current node to registeredNodeList
+                registeredNodeList.put(IP, port);
+
+                //send response packet to the messaging node
+                    String info = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + registeredNodeList.size() + ")";
+                    RegisterResponse registerResponse = new RegisterResponse(Type.REGISTER_RESPONSE, true, info);
+                    try {
+                        TCPSender.sendData(registerResponse.getBytes(), socket);
+                    } catch (IOException ioe){
+                        System.out.println("Failed to Marshall the RegisterResponse. Exit now.");
+                        System.exit(-1);
+                    }
+
+
+            }
+        }
+
+
+
+
+
+    };
+
+    //response to different kind of events
+    public void onEvent(Event event, Socket socket){
+        switch (event.getType()){
+            case REGISTER_REQUEST:
+                registerProcess((Register)event, socket);
+
+
+
+        }
     }
 
 

@@ -14,7 +14,7 @@ public class Judge {
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
-        MessageType type = MessageType.valueOf(din.readInt());
+        Type type = Type.valueOf(din.readInt());
         switch (type){
             case REGISTER_REQUEST:
                 return Register.decodeByte(marshalledBytes);

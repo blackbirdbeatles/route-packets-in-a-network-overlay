@@ -9,15 +9,16 @@ import java.io.*;
  */
 public class Register implements Event{
 
-    MessageType type;
+    Type type;
     String IP;
     int port;
 
     public Register(int port, String IP){
-        type = MessageType.REGISTER_REQUEST;
+        type = Type.REGISTER_REQUEST;
         this.IP = IP;
         this.port = port;
     }
+
 
     public byte[] getBytes() throws IOException {
         byte[] marshalledBytes = null;
@@ -68,5 +69,14 @@ public class Register implements Event{
 
     }
 
+    public Type getType(){
+        return this.type;
+    }
+    public String getIP(Register register){
+        return register.IP;
+    }
+    public int getPort(Register register){
+        return register.port;
+    }
 
 }

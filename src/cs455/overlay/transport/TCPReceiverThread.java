@@ -46,7 +46,7 @@ public class TCPReceiverThread extends Thread {
                 Event event = Judge.decodeByte(data);
 
                     //call the parent to deal with this event
-                parent.onEvent(event);
+                parent.onEvent(event, socket);
 
 
 
