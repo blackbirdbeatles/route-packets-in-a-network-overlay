@@ -111,11 +111,9 @@ public class MessagingNode implements Node {
         //get the chosen listening port
         msgNode.listeningPort = msgNode.tcpServerThread.getListeningPort();
         System.out.println("The chosen port is " + String.valueOf(msgNode.listeningPort));
-
-
-        //connect to the server
-        Socket socketToRegistry;
         try {
+            //connect to the server
+            Socket socketToRegistry;
             socketToRegistry = new Socket(registryHost, registryPort);
             //create receiver thread with Registry
             msgNode.tcpReceiverFromRegistry = new TCPReceiverThread(socketToRegistry, msgNode);
@@ -133,7 +131,7 @@ public class MessagingNode implements Node {
             //send the marshalled data
             TCPSender.sendData(toSend,socketToRegistry);
 
-            //wait for command
+            //wait for command from console
             Scanner scanner = new Scanner(System.in);
             String command;
             while (scanner.hasNextLine()) {
@@ -141,6 +139,16 @@ public class MessagingNode implements Node {
                 if (command.equals("exit-overlay")){
                     msgNode.exitOverlay(socketToRegistry);
                 }
+
+
+
+
+                //TODO: wait for more command of MSGNODE
+
+
+
+
+
             }
 
         } catch (IOException ioe) {
