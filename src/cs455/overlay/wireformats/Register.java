@@ -20,29 +20,36 @@ public class Register implements Event{
     }
 
 
-    public byte[] getBytes() throws IOException {
-        byte[] marshalledBytes = null;
-        ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();
-        DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
+    public byte[] getBytes(){
+        try {
+            byte[] marshalledBytes = null;
+            ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();
+            DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
 
-        //write type
-        dout.writeInt(type.getValue());
+            //write type
+            dout.writeInt(type.getValue());
 
-        //write IP string
-        byte[] IPBytes = IP.getBytes();
-        int IPLength = IPBytes.length;
-        dout.writeInt(IPLength);
-        dout.write(IPBytes);
+            //write IP string
+            byte[] IPBytes = IP.getBytes();
+            int IPLength = IPBytes.length;
+            dout.writeInt(IPLength);
+            dout.write(IPBytes);
 
-        //write port
-        dout.writeInt(port);
+            //write port
+            dout.writeInt(port);
 
-        dout.flush();
-        marshalledBytes = baOutputStream.toByteArray();
+            dout.flush();
+            marshalledBytes = baOutputStream.toByteArray();
 
-        baOutputStream.close();
-        dout.close();
-        return marshalledBytes;
+            baOutputStream.close();
+            dout.close();
+            return marshalledBytes;
+        } catch (IOException ioe){
+            System.out.println("Exception: Register.getBytes()");
+            System.out.println(ioe.getMessage());
+            System.exit(-1);
+        }
+        return null;
     }
 
     public static Register decodeByte(byte[] marshalledBytes) throws IOException{

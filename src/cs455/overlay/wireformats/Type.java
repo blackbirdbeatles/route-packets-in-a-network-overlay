@@ -10,7 +10,10 @@ public enum Type {
 
     REGISTER_REQUEST(1),
     REGISTER_RESPONSE(2),
-    DEREGISTER_REQUEST(3);
+
+    DEREGISTER_REQUEST(3),
+    DEREGISTER_RESPONSE(4);
+
 
     private int value;
     private static Map<Integer, Type> map = new HashMap<Integer, Type>();

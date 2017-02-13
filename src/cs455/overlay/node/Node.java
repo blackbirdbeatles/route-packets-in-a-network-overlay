@@ -9,4 +9,5 @@ import java.net.Socket;
  */
 public interface Node {
     public void onEvent(Event e, Socket socket);
+    public String toString();
 }

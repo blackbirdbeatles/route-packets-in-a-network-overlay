@@ -3,12 +3,11 @@ package cs455.overlay.node;
 import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
-import cs455.overlay.wireformats.Event;
-import cs455.overlay.wireformats.Register;
-import cs455.overlay.wireformats.RegisterResponse;
+import cs455.overlay.wireformats.*;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 
 /**
  * Created by MyGarden on 17/2/9.
@@ -40,10 +39,41 @@ public class MessagingNode implements Node {
         sendSum = 0;
         receiveSum = 0;
     }
+    public String toString() {
+        return "MessagingNode";
+    }
+
+    //Response to the Command
+
+    public void exitOverlay(Socket socketToRegistry){
+        // send deregister message
+        // generate deregister message format
+        Deregister deregister_msg;
+        deregister_msg = new Deregister(listeningPort, tcpServerThread.getHostName());
+
+        byte [] toSend;
+        //send deregister message
+        toSend = deregister_msg.getBytes();
+        //send the marshalled data
+        TCPSender.sendData(toSend,socketToRegistry);
+
+    }
+
+    //Response to the Event
 
     public void registerResponseProcess(RegisterResponse registerResponse, Socket socket){
         boolean code = registerResponse.getCode();
         System.out.println(registerResponse.getInfo());
+    }
+
+    public void deregisterResponseProcess(DeregisterResponse deregisterResponse, Socket socket){
+        boolean code = deregisterResponse.getCode();
+        if (code) {
+            System.out.println(deregisterResponse.getInfo());
+            System.exit(0);
+        }
+        else
+            System.out.println(deregisterResponse.getInfo());
     }
 
     public void onEvent(Event event, Socket socket){
@@ -51,7 +81,9 @@ public class MessagingNode implements Node {
             case REGISTER_RESPONSE:
                 registerResponseProcess((RegisterResponse)event, socket);
                 break;
-
+            case DEREGISTER_RESPONSE:
+                deregisterResponseProcess((DeregisterResponse)event, socket);
+                break;
 
 
         }
@@ -82,39 +114,40 @@ public class MessagingNode implements Node {
 
 
         //connect to the server
+        Socket socketToRegistry;
         try {
-            Socket socketToRegistry = new Socket(registryHost, registryPort);
-
+            socketToRegistry = new Socket(registryHost, registryPort);
             //create receiver thread with Registry
             msgNode.tcpReceiverFromRegistry = new TCPReceiverThread(socketToRegistry, msgNode);
             msgNode.tcpReceiverFromRegistry.start();
+            //register
 
-        //register
-
-          // generate register message format
-        Register register_msg;
-        register_msg = new Register(msgNode.listeningPort, msgNode.tcpServerThread.getHostName());
+            // generate register message format
+            Register register_msg;
+            register_msg = new Register(msgNode.listeningPort, msgNode.tcpServerThread.getHostName());
 
 
-          //send register message
-        byte[] toSend = register_msg.getBytes();
+            //send register message
+            byte[] toSend = register_msg.getBytes();
 
-          //send the marshalled data
-        TCPSender.sendData(toSend,socketToRegistry);
+            //send the marshalled data
+            TCPSender.sendData(toSend,socketToRegistry);
 
+            //wait for command
+            Scanner scanner = new Scanner(System.in);
+            String command;
+            while (scanner.hasNextLine()) {
+                command = scanner.nextLine();
+                if (command.equals("exit-overlay")){
+                    msgNode.exitOverlay(socketToRegistry);
+                }
+            }
+
+        } catch (IOException ioe) {
+            System.out.println("Exception: Fail to connect to Registry. Exit now");
+            System.exit(-1);
         }
-        catch (IOException ioe){
-            System.out.println(ioe.getMessage());
-            return;
-        }
-
-
-
-
-
-
-
 
     }
-
 }
+

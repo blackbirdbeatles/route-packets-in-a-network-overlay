@@ -20,6 +20,10 @@ public class Judge {
                 return Register.decodeByte(marshalledBytes);
             case REGISTER_RESPONSE:
                 return RegisterResponse.decodeByte(marshalledBytes);
+            case DEREGISTER_REQUEST:
+                return Deregister.decodeByte(marshalledBytes);
+            case DEREGISTER_RESPONSE:
+                return DeregisterResponse.decodeByte(marshalledBytes);
             default:
                 System.out.println("Data corrupted");
                 System.exit(-1);

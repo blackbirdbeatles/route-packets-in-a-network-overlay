@@ -19,12 +19,12 @@ public class TCPReceiverThread extends Thread {
     private DataInputStream din;
     private Node parent;
 
-    public TCPReceiverThread(Socket socket, Node parent) throws IOException{
-        this.socket = socket;
+    public TCPReceiverThread(Socket socket, Node parent){
         try {
+            this.socket = socket;
             din = new DataInputStream(socket.getInputStream());
         } catch (IOException ioe){
-            System.out.println(ioe.getMessage());
+            System.out.println("Exception: fail to create a din in TCPReceiverThread. Parent:" + parent.toString());
         }
         this.parent = parent;
     }
@@ -54,7 +54,7 @@ public class TCPReceiverThread extends Thread {
                 System.out.println(se.getMessage());
                 break;
             } catch (IOException ioe){
-                System.out.println(ioe.getMessage());
+                //Here will get an EOF when MSGNODE exit
                 break;
             }
 
