@@ -18,6 +18,8 @@ public class Judge {
         switch (type){
             case REGISTER_REQUEST:
                 return Register.decodeByte(marshalledBytes);
+            case REGISTER_RESPONSE:
+                return RegisterResponse.decodeByte(marshalledBytes);
             default:
                 System.out.println("Data corrupted");
                 System.exit(-1);

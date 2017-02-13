@@ -74,4 +74,7 @@ public class RegisterResponse implements Event{
     public Type getType(){
         return this.type;
     }
+    public boolean getCode(){
+        return this.code;
+    }
 }

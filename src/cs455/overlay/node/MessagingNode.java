@@ -5,6 +5,7 @@ import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.Register;
+import cs455.overlay.wireformats.RegisterResponse;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -40,9 +41,24 @@ public class MessagingNode implements Node {
         receiveSum = 0;
     }
 
+    public void registerResponseProcess(RegisterResponse registerResponse, Socket socket){
+        boolean code = registerResponse.getCode();
+        if (code)
+            System.out.println("Successfully registered");
+        else
+            System.out.println("Fail to register");
+
+    }
+
+    public void onEvent(Event event, Socket socket){
+        switch (event.getType()){
+            case REGISTER_RESPONSE:
+                registerResponseProcess((RegisterResponse)event, socket);
+                break;
 
 
-    public void onEvent(Event e, Socket socket){
+
+        }
 
     }
 

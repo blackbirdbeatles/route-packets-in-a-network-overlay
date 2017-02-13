@@ -9,6 +9,7 @@ import cs455.overlay.wireformats.Type;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 
 /**
@@ -34,6 +35,9 @@ public class Registry implements Node {
     }
 
     private void registerProcess(Register register, Socket socket){
+
+        System.out.println("Received register event from " + socket.getRemoteSocketAddress().toString());
+
         String IP = register.getIP(register);
         String realIP = socket.getRemoteSocketAddress().toString();
         int port = register.getPort(register);
@@ -46,15 +50,30 @@ public class Registry implements Node {
 
                 //send response packet to the messaging node
                     String info = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + registeredNodeList.size() + ")";
-                    RegisterResponse registerResponse = new RegisterResponse(Type.REGISTER_RESPONSE, true, info);
+                    RegisterResponse registerResponse = new RegisterResponse( true, info);
                     try {
                         TCPSender.sendData(registerResponse.getBytes(), socket);
-                    } catch (IOException ioe){
+                    }
+                    catch (IOException ioe){
                         System.out.println("Failed to Marshall the RegisterResponse. Exit now.");
+
+                        //TODO: SEND A "INTERUPT" EVENT TO REGISTRY AND DELETE THE MEMBERSHIP FOR THIS NODE
+
                         System.exit(-1);
                     }
 
 
+
+            }
+            else{
+                String info = "Registration request failed";
+                RegisterResponse registerResponse = new RegisterResponse( false, info);
+                try {
+                    TCPSender.sendData(registerResponse.getBytes(), socket);
+                } catch (IOException ioe){
+                    System.out.println("Failed to Marshall the RegisterResponse. Exit now.");
+                    System.exit(-1);
+                }
             }
         }
 
@@ -69,7 +88,7 @@ public class Registry implements Node {
         switch (event.getType()){
             case REGISTER_REQUEST:
                 registerProcess((Register)event, socket);
-
+                break;
 
 
         }
