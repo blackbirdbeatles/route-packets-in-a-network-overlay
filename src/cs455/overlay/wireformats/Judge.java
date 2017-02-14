@@ -24,6 +24,8 @@ public class Judge {
                 return Deregister.decodeByte(marshalledBytes);
             case DEREGISTER_RESPONSE:
                 return DeregisterResponse.decodeByte(marshalledBytes);
+            case MESSAGINGNODESLIST:
+                return MessagingNodesList.decodebyte(marshalledBytes);
             default:
                 System.out.println("Data corrupted");
                 System.exit(-1);

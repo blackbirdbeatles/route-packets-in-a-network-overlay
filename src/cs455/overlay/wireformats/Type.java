@@ -12,7 +12,9 @@ public enum Type {
     REGISTER_RESPONSE(2),
 
     DEREGISTER_REQUEST(3),
-    DEREGISTER_RESPONSE(4);
+    DEREGISTER_RESPONSE(4),
+
+    MESSAGINGNODESLIST(5);
 
 
     private int value;

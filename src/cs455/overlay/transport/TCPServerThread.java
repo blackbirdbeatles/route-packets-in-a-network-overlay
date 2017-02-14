@@ -31,7 +31,6 @@ public class TCPServerThread extends Thread{
         while (true){
             try {
                 Socket socket = serverSocket.accept();
-               // System.out.println("Just connected to " + socket.getRemoteSocketAddress());
                 TCPReceiverThread tcpReceiverThread = new TCPReceiverThread(socket, parent);
                 tcpReceiverThread.start();
 

@@ -17,9 +17,9 @@ public class Registry implements Node {
 
     private int port;
     private TCPServerThread tcpServerThread;
-    private HashMap<String, Integer> registeredNodeList;                     //think of what kind of data structure is the best choice
+    private HashMap<String, Socket> registeredNodeList;                     //think of what kind of data structure is the best choice
     private int numberOfConnections;
-    private HashMap<String, Socket> IPPortToSocket;
+    private HashMap<String, MessagingNodesList> nodeList;
     private HashMap<String, ArrayList<String>> nodeConnectsToOtherNodes;
    // private HashMap< Socket, ArrayList<ArrayList<Object>>> linkWeight;  //?????????
     private ArrayList<ArrayList<Object>> linkWeight;
@@ -87,7 +87,8 @@ public class Registry implements Node {
         String IP = register.getIP();
         String realIP = socket.getInetAddress().getHostAddress();
         int port = register.getPort();
-        System.out.println("Received register event from " + IP + ":" + port);
+        String hostID = IP + ":" +port;
+        System.out.println("Received register event from " + hostID);
 
         //to prevent multi-threads access the registeredNodeList at the same time
         synchronized (this.registeredNodeList) {
@@ -96,7 +97,7 @@ public class Registry implements Node {
             //if register succeed, send success response
             if (isValid == 0) {
                 //add the current node to registeredNodeList
-                registeredNodeList.put(IP + ":" + String.valueOf(port), 1);
+                registeredNodeList.put(IP + ":" + String.valueOf(port), socket);
 
                 //send response packet to the messaging node
                 String info = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + registeredNodeList.size() + ")";
@@ -195,7 +196,46 @@ public class Registry implements Node {
     //Methods to response to command from console
 
 
-    //SETUP-OVERLAY
+    //SETUP-OVERLAY: send MessagingNodeList to the corresponding host
+
+
+    private void buildNodeList(){
+
+        //traverse through nodeConnectsToOtherNodes, create a nodeList <String, MessagingNodeList>
+
+        ArrayList<String> hostList = new ArrayList<>(this.nodeConnectsToOtherNodes.keySet());
+        for (int i = 0; i < hostList.size(); i++){
+            String host = hostList.get(i);
+            ArrayList<String> peerList = this.nodeConnectsToOtherNodes.get(host);
+
+            //create the event for one certain host according to peerList: MessagingNodesList
+            MessagingNodesList messagingNodesList = new MessagingNodesList(peerList.size());
+            messagingNodesList.copyPeerList(peerList);
+            nodeList.put(host, messagingNodesList);
+        }
+    }
+
+    private void sendMessagingNodeList(){
+        //MessagingNodesList messagingNodesList = new MessagingNodesList();
+
+        //after buildNodeList(), we get the this.nodeList: hashmap <host, MessagingNodeList>
+        buildNodeList();
+        ArrayList<String> hostList = new ArrayList<>(this.nodeList.keySet());
+        for (int i = 0; i < hostList.size(); i++){
+            String host = hostList.get(i);
+            Socket socket = this.registeredNodeList.get(host);
+            MessagingNodesList messagingNodesList = this.nodeList.get(host);
+            byte [] toSend = messagingNodesList.getBytes();
+            try {
+                TCPSender.sendData(toSend,socket);
+            } catch (IOException e) {
+                // Alreay after setup-overlay, should not delete the current node, just exite
+                System.out.println("Fail to send messagingNodeList to" + host + ". Exit now ");
+                System.exit(-1);
+            }
+            System.out.println("Already sent MessagingNodeList to " + host);
+        }
+    }
 
     private void setupLink(){
 
@@ -209,7 +249,7 @@ public class Registry implements Node {
         Random rand = new Random();
         ArrayList<String> IPAndPortlist = new ArrayList<>(this.registeredNodeList.keySet());
 
-
+        //relate adjacent nodes
         for (int i = 0; i < IPAndPortlist.size(); i++){
 
             ArrayList<Object> linkInfo = new ArrayList<>();
@@ -225,6 +265,7 @@ public class Registry implements Node {
             linkWeight.add(linkInfo);
         }
 
+        //relate every two consecutive nodes
         for (int i = 0; i < IPAndPortlist.size(); i++){
 
             ArrayList<Object> linkInfo = new ArrayList<>();
@@ -242,8 +283,11 @@ public class Registry implements Node {
     }
 
     public void setupOverlay(){
+
+        //get the linkWeight ArrayList<ArrayList<Object>> , which is the topology of the host net
         setupLink();
-        //TODO
+        //notify each of the node who they should connect to;
+        sendMessagingNodeList();
     }
 
     public void listMessagingNodes() {
@@ -289,11 +333,14 @@ public class Registry implements Node {
         Scanner scanner = new Scanner(System.in);
         String command;
         while (scanner.hasNextLine()) {
+
             command = scanner.nextLine();
+
             if (command.equals("list-messaging nodes")){
                 registry.listMessagingNodes();
                 continue;
             }
+
             if (command.startsWith("setup-overlay ")) {
                 String subCommand = command.substring(14);
                 try{
@@ -302,8 +349,17 @@ public class Registry implements Node {
                     System.out.println("Please enter right format of command");
                     continue;
                 }
-                registry.setupOverlay();
+
+                //TODO: Here I do not quite know what if the number of current nodes is less than 10, since that will break my setupOverlay procedure.
+                if (registry.registeredNodeList.size() >= registry.numberOfConnections)
+                    registry.setupOverlay();
+                else{
+                    System.out.println("Error: the number of messaging nodes is less than the connection limit that is specified");
+                    continue;
+                }
             }
+
+
 
         }
     }

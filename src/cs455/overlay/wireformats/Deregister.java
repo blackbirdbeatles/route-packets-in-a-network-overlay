@@ -52,28 +52,33 @@ public class Deregister implements Event{
         return null;
     }
 
-    public static Deregister decodeByte(byte[] marshalledBytes) throws IOException{
-        ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
-        DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
+    public static Deregister decodeByte(byte[] marshalledBytes){
+        try {
+            ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
+            DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
-        //readin type, but actually already known
-        din.readInt();
+            //readin type, but actually already known
+            din.readInt();
 
-        //readin IP string
-        int IPLength = din.readInt();
-        byte[] IPBytes = new byte[IPLength];
-        din.readFully(IPBytes);
-        String IP = new String(IPBytes);
+            //readin IP string
+            int IPLength = din.readInt();
+            byte[] IPBytes = new byte[IPLength];
+            din.readFully(IPBytes);
+            String IP = new String(IPBytes);
 
-        //readin port
-        int port = din.readInt();
+            //readin port
+            int port = din.readInt();
 
-        baInputStream.close();
-        din.close();
+            baInputStream.close();
+            din.close();
 
-        return new Deregister(port,IP);
-
-
+            return new Deregister(port, IP);
+        } catch (IOException ioe){
+            System.out.println("Exception: Deregister.decodeBytes()");
+            System.out.println(ioe.getMessage());
+            System.exit(-1);
+        }
+        return null;
     }
 
     public Type getType(){

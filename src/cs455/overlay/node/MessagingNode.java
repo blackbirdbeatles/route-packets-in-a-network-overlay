@@ -55,8 +55,12 @@ public class MessagingNode implements Node {
         //send deregister message
         toSend = deregister_msg.getBytes();
         //send the marshalled data
-        TCPSender.sendData(toSend,socketToRegistry);
-
+        try {
+            TCPSender.sendData(toSend, socketToRegistry);
+        } catch (IOException ioe){
+            System.out.println("Fail for a MsgNode to send deregister event");
+            System.exit(-1);
+        }
     }
 
     //Response to the Event
@@ -76,6 +80,10 @@ public class MessagingNode implements Node {
             System.out.println(deregisterResponse.getInfo());
     }
 
+    public void messagingNodesListProcess(MessagingNodesList messagingNodesList, Socket socket){
+
+    }
+
     public void onEvent(Event event, Socket socket){
         switch (event.getType()){
             case REGISTER_RESPONSE:
@@ -84,6 +92,8 @@ public class MessagingNode implements Node {
             case DEREGISTER_RESPONSE:
                 deregisterResponseProcess((DeregisterResponse)event, socket);
                 break;
+            case MESSAGINGNODESLIST:
+                messagingNodesListProcess((MessagingNodesList)event, socket);
 
 
         }
