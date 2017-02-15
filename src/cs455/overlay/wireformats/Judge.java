@@ -28,6 +28,16 @@ public class Judge {
                 return MessagingNodesList.decodebyte(marshalledBytes);
             case LINKWEIGHTS:
                 return LinkWeights.decodebyte(marshalledBytes);
+            case TASKINITIATE:
+                return TaskInitiate.decodebyte(marshalledBytes);
+            case TASKCOMPLETE:
+                return  TaskComplete.decodebyte(marshalledBytes);
+            case PULLTRAFFICSUMMARY:
+                return PullTrafficSummary.decodebyte(marshalledBytes);
+            case TRAFFICSUMMARY:
+                return TrafficSummary.decodebyte(marshalledBytes);
+            case PAYLOAD:
+                return Payload.decodebyte(marshalledBytes);
             default:
                 System.out.println("Data corrupted");
                 System.exit(-1);

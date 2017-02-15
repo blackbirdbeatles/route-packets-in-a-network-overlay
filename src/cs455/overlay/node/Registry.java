@@ -9,6 +9,7 @@ import java.lang.reflect.Array;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by MyGarden on 17/2/8.
@@ -23,6 +24,23 @@ public class Registry implements Node {
     private HashMap<String, ArrayList<String>> nodeConnectsToOtherNodes;
    // private HashMap< Socket, ArrayList<ArrayList<Object>>> linkWeight;  //?????????
     private ArrayList<ArrayList<Object>> linkWeight;
+
+    int completedNodes;
+
+
+    ArrayList<Integer> numberOfMsgSent;
+    ArrayList<Integer> NumberOfMsgReceived;
+    ArrayList<Long> sumOfSentMsg;
+    ArrayList<Long> sumOfReceivedMsg;
+    ArrayList<Integer> NumberOfMsgRelayed;
+
+    int msgSent;
+    int msgReceived;
+    long sum_sentMsg;
+    long sum_receivedMsg;
+    int msgRelayed;
+
+
     public Registry(int port) {
 
         this.port = port;
@@ -36,7 +54,90 @@ public class Registry implements Node {
 
     //response to different kind of events
 
+    public synchronized void trafficSummaryProcess(TrafficSummary event, Socket socket){
 
+
+        numberOfMsgSent.add(event.getSendTracker());
+        NumberOfMsgReceived.add(event.getReceiveTracker());
+        sumOfSentMsg.add(event.getSendSum());
+        sumOfReceivedMsg.add(event.getReceiveSum());
+        NumberOfMsgRelayed.add(event.getRelayTracker());
+
+        msgSent += event.getSendTracker();
+        msgReceived += event.getReceiveTracker();
+        sum_sentMsg += event.getSendSum();
+        sum_receivedMsg += event.getReceiveSum();
+
+
+        //display the message
+        if (numberOfMsgSent.size() == registeredNodeList.size()){
+            System.out.println("\t \t msgSent \t msgReceived \t sum_sentMsg \t sum_receivedMsg \t msgRelayed");
+            for (int i = 0; i < registeredNodeList.size(); i++){
+                //model: System.out.println("Node"+i+" /t "+numberOfMsgSent.get(i)+" /t "+"msgReceived"+" /t "+"sum_sentMsg"+" /t "+"sum_receivedMsg"+" /t "+"msgRelayed");
+                System.out.println("Node"+(i+1)+" \t "+numberOfMsgSent.get(i)+" \t "+NumberOfMsgReceived.get(i)+" \t "+sumOfSentMsg.get(i)+" \t "+sumOfReceivedMsg.get(i)+" \t "+NumberOfMsgRelayed.get(i));
+            }
+            System.out.println("sum \t "+msgSent+"\t "+msgReceived+" \t "+sum_sentMsg+"\t "+sum_receivedMsg);
+        }
+
+    }
+
+    private synchronized boolean incrementCompletedNodesAndReachAll(){
+        this.completedNodes++;
+        if ( completedNodes == registeredNodeList.size())
+           return true;
+       else
+           return false;
+    }
+    //event: taskComplete
+
+    private void sendPullTrafficSummary(){
+        //initiate the check data
+        numberOfMsgSent = new ArrayList<>();
+        NumberOfMsgReceived = new ArrayList<>();
+        sumOfSentMsg = new ArrayList<>();
+        sumOfReceivedMsg = new ArrayList<>();
+        NumberOfMsgRelayed = new ArrayList<>();
+
+        msgSent = 0;
+        msgReceived = 0;
+        sum_sentMsg = 0;
+        sum_receivedMsg = 0;
+
+
+        ArrayList<Socket> hostSocketList = new ArrayList<>(registeredNodeList.values());
+
+        //transfer the linkWeight class variable into the class "LinkWeights"
+        PullTrafficSummary pullTrafficSummary = new PullTrafficSummary();
+
+        byte [] toSend = pullTrafficSummary.getBytes();
+
+        for (int i = 0; i < hostSocketList.size(); i++){
+            Socket socket = hostSocketList.get(i);
+            try{
+                TCPSender.sendData(toSend,socket);
+            } catch (IOException ioe){
+                System.out.println("Fail to send PullTrafficSummary message to a messagingNode. Exit now");
+                System.exit(-1);
+            }
+        }
+        System.out.println("already sent pullTrafficSummary to all nodes");
+
+    }
+    public void taskCompleteProcess(TaskComplete event,Socket socket){
+        System.out.println("received task_complete from " + event.getIP() + ":" +event.getPort());
+
+        //if all nodes completes exchanging msg, sleep 30s, and then send PULL_TRAFFIC_SUMMARY
+        if (incrementCompletedNodesAndReachAll()){
+            System.out.println("All the nodes have completed task, now wait for 30s");
+            try {
+                TimeUnit.SECONDS.sleep(30);
+            } catch (InterruptedException ie){
+                System.out.println("Interrupted in Registry");
+            }
+            sendPullTrafficSummary();
+
+        }
+    }
 
     //register and deregister
     private boolean isIdenticalIP(String IP, String realIP) {
@@ -194,6 +295,8 @@ public class Registry implements Node {
     //*****************Methods to response to command from console
 
 
+
+
     //SETUP-OVERLAY: send MessagingNodeList to the corresponding host
 
 
@@ -336,7 +439,40 @@ public class Registry implements Node {
             case DEREGISTER_REQUEST:
                 deregisterProcess((Deregister)event, socket);
                 break;
+            case TASKCOMPLETE:
+                taskCompleteProcess((TaskComplete)event,socket);
+                break;
+            case TRAFFICSUMMARY:
+                trafficSummaryProcess((TrafficSummary)event,socket);
+                break;
         }
+    }
+
+    private void sendInitiateToAllHost(int rounds){
+
+        ArrayList<Socket> hostSocketList = new ArrayList<>(registeredNodeList.values());
+
+        //transfer the linkWeight class variable into the class "LinkWeights"
+        TaskInitiate taskInitiate = new TaskInitiate(rounds);
+        byte [] toSend = taskInitiate.getBytes();
+
+        for (int i = 0; i < hostSocketList.size(); i++){
+            Socket socket = hostSocketList.get(i);
+            try{
+                TCPSender.sendData(toSend,socket);
+            } catch (IOException ioe){
+                System.out.println("Fail to send task_initiate message to a messagingNode. Exit now");
+                System.exit(-1);
+            }
+        }
+    }
+    public void startProcess(int rounds){
+        sendInitiateToAllHost(rounds);
+
+        // clear up the current start completed exchanging packets nodes count
+        this.completedNodes = 0;
+
+        //TODO: keep doing about start
     }
 
 
@@ -394,6 +530,18 @@ public class Registry implements Node {
                     System.out.println("Error: the number of messaging nodes is less than the connection limit that is specified");
                     continue;
                 }
+                continue;
+            }
+            if (command.startsWith("start")){
+                String subCommand = command.substring(6);
+                int rounds;
+                try{
+                    rounds = Integer.parseInt(subCommand);
+                } catch (NumberFormatException nfe){
+                    System.out.println("Please enter right format of command");
+                    continue;
+                }
+                registry.startProcess(rounds);
                 continue;
             }
             System.out.println("Command wrong in Registry");

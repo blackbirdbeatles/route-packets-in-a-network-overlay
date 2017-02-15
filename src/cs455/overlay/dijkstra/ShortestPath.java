@@ -130,11 +130,20 @@ public class ShortestPath {
     public void printPath(){
         for (String host: allHostArray){
             if (!host.equals(source)){
-                System.out.print("source:" + source);
+                System.out.print(source);
                 printPathOf(host);
                 System.out.println("");
             }
         }
+    }
+
+    public ArrayList<String> getAllHostArray(){
+        return  allHostArray;
+    }
+    public void printRoutingPlan(){
+        for (String host: nextHop.keySet())
+            System.out.println(host + " " + nextHop.get(host));
+
     }
 
 }

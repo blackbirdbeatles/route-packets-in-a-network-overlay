@@ -15,7 +15,12 @@ public enum Type {
     DEREGISTER_RESPONSE(4),
 
     MESSAGINGNODESLIST(5),
-    LINKWEIGHTS(6);
+    LINKWEIGHTS(6),
+    TASKINITIATE(7),
+    PAYLOAD(8),
+    TASKCOMPLETE(9),
+    PULLTRAFFICSUMMARY(10),
+    TRAFFICSUMMARY(11);
 
 
     private int value;
