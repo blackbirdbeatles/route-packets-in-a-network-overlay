@@ -14,7 +14,8 @@ public enum Type {
     DEREGISTER_REQUEST(3),
     DEREGISTER_RESPONSE(4),
 
-    MESSAGINGNODESLIST(5);
+    MESSAGINGNODESLIST(5),
+    LINKWEIGHTS(6);
 
 
     private int value;

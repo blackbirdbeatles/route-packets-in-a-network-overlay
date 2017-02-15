@@ -309,6 +309,22 @@ public class Registry implements Node {
         }
     }
     public void sendOverlayLinkWeights(){
+        ArrayList<Socket> hostSocketList = new ArrayList<>(registeredNodeList.values());
+
+        //transfer the linkWeight class variable into the class "LinkWeights"
+        LinkWeights linkWeights = new LinkWeights(this.linkWeight.size());
+        linkWeights.copyWeightList(this.linkWeight);
+        byte [] toSend = linkWeights.getBytes();
+
+        for (int i = 0; i < hostSocketList.size(); i++){
+            Socket socket = hostSocketList.get(i);
+            try{
+                TCPSender.sendData(toSend,socket);
+            } catch (IOException ioe){
+                System.out.println("Fail to send linkWeight message to a messagingNode. Exit now");
+                System.exit(-1);
+            }
+        }
 
     }
 

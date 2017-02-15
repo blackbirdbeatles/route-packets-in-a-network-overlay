@@ -46,7 +46,7 @@ public class MessagingNodesList implements Event {
             return marshalledBytes;
 
         } catch (IOException ioe){
-            System.out.println("Exception: Register.getBytes()");
+            System.out.println("Exception: MessagingNodesList.getBytes()");
             System.out.println(ioe.getMessage());
             System.exit(-1);
         }
@@ -81,7 +81,7 @@ public class MessagingNodesList implements Event {
             return result;
 
         } catch (IOException ioe){
-            System.out.println("Exception: Deregister.decodeBytes()");
+            System.out.println("Exception: MessagingNodesList.decodeBytes()");
             System.out.println(ioe.getMessage());
             System.exit(-1);
         }
