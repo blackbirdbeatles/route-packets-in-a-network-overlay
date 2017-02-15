@@ -79,7 +79,7 @@ public class LinkWeights implements Event {
                 ArrayList<Object> linkInfo = new ArrayList<>();
                 linkInfo.add(oneLineOfInfo[0]);
                 linkInfo.add(oneLineOfInfo[1]);
-                linkInfo.add(oneLineOfInfo[2]);
+                linkInfo.add(Integer.parseInt(oneLineOfInfo[2]));
                 weightList.add(linkInfo);
             }
 

@@ -371,10 +371,12 @@ public class Registry implements Node {
             }
             if (command.equals("list-weights")){
                 registry.listWeight();
+                continue;
 
             }
             if (command.equals("send-overlay-link-weights")){
                 registry.sendOverlayLinkWeights();
+                continue;
             }
             if (command.startsWith("setup-overlay ")) {
                 String subCommand = command.substring(14);
@@ -392,7 +394,9 @@ public class Registry implements Node {
                     System.out.println("Error: the number of messaging nodes is less than the connection limit that is specified");
                     continue;
                 }
+                continue;
             }
+            System.out.println("Command wrong in Registry");
 
 
         }

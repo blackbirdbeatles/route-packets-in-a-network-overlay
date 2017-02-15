@@ -1,5 +1,6 @@
 package cs455.overlay.node;
 
+import cs455.overlay.dijkstra.ShortestPath;
 import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSender;
 import cs455.overlay.transport.TCPServerThread;
@@ -19,6 +20,7 @@ public class MessagingNode implements Node {
 
     private int listeningPort;
     private String myIP;
+    private String myHostID;
 
     private int sendTracker;
     private int receiveTracker;
@@ -34,11 +36,18 @@ public class MessagingNode implements Node {
     private HashMap<String, Socket> currentPeer;
     private boolean peerConnection;
 
+    private HashMap<String, String> routingPlan;
+    ShortestPath dijkstra;
+   // boolean routingReady;
+
 
     private TCPReceiverThread [] tcpReceiverFromMsgingNode;
 
 
     public MessagingNode(){
+    //    this.routingReady = false;
+
+
         sendTracker = 0;
         receiveTracker = 0;
         relayTracker = 0;
@@ -74,6 +83,13 @@ public class MessagingNode implements Node {
         }
     }
 
+    public void printShortestPath(){
+        if (dijkstra != null) {
+            dijkstra.printPath();
+        }
+        else
+            System.out.println("Lack link weights");
+    }
 
     private void sendHelloToPeer(Socket socketToPeer ,String host){
         Register hello = new Register(listeningPort,getMyIP());
@@ -157,16 +173,17 @@ public class MessagingNode implements Node {
 
     }
 
-    public void dijkstra(){
-
-    }
 
     public void linkWeightsProcess(LinkWeights event, Socket socket){
-        //dijkstra;
+        dijkstra = new ShortestPath(event.getWeightList(), this.myHostID);
+        this.routingPlan = dijkstra.getRountingPlan();
+       // this.routingReady = true;
         System.out.println("Link Weights are received and processed. Ready to send messages.");
         //print out the recieved link weight list
         //event.print();
     }
+
+
 
     public void onEvent(Event event, Socket socket){
         switch (event.getType()){
@@ -224,6 +241,7 @@ public class MessagingNode implements Node {
             // generate register message format
             Register register_msg;
             msgNode.setMyIP( msgNode.tcpServerThread.getHostName());
+            msgNode.myHostID = msgNode.getMyIP() + ":" + msgNode.listeningPort;
             register_msg = new Register(msgNode.listeningPort, msgNode.getMyIP());
 
 
@@ -240,14 +258,17 @@ public class MessagingNode implements Node {
                 command = scanner.nextLine();
                 if (command.equals("exit-overlay")){
                     msgNode.exitOverlay(socketToRegistry);
+                    continue;
                 }
-
+                if (command.equals("print-shortest-path")){
+                    msgNode.printShortestPath();
+                    continue;
+                }
+                System.out.println("bad match command");
 
 
 
                 //TODO: wait for more command of MSGNODE
-
-
 
 
 
