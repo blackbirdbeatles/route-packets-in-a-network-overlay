@@ -155,8 +155,17 @@ public class MessagingNode implements Node {
             //create receiver thread with peerHost
         }
 
+    }
 
+    public void dijkstra(){
 
+    }
+
+    public void linkWeightsProcess(LinkWeights event, Socket socket){
+        //dijkstra;
+        System.out.println("Link Weights are received and processed. Ready to send messages.");
+        //print out the recieved link weight list
+        //event.print();
     }
 
     public void onEvent(Event event, Socket socket){
@@ -175,7 +184,9 @@ public class MessagingNode implements Node {
                 System.out.println("received event MessagingNodesList");
                 messagingNodesListProcess((MessagingNodesList)event, socket);
                 break;
-
+            case LINKWEIGHTS:
+                linkWeightsProcess((LinkWeights)event, socket);
+                break;
         }
 
     }

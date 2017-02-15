@@ -109,4 +109,11 @@ public class LinkWeights implements Event {
     public ArrayList<ArrayList<Object>> getWeightList(){
         return weightList;
     }
+    public void print(){
+        System.out.println("Type: " + type);
+        System.out.println("Number of Link: " +numberOfLinks);
+        for (ArrayList<Object> item: weightList){
+            System.out.println(item.get(0) + " " + item.get(1) + " " + item.get(2));
+        }
+    }
 }
