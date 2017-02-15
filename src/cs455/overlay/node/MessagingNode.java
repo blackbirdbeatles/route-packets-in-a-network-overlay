@@ -7,7 +7,10 @@ import cs455.overlay.wireformats.*;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by MyGarden on 17/2/9.
@@ -15,6 +18,7 @@ import java.util.Scanner;
 public class MessagingNode implements Node {
 
     private int listeningPort;
+    private String myIP;
 
     private int sendTracker;
     private int receiveTracker;
@@ -27,6 +31,8 @@ public class MessagingNode implements Node {
 
     private TCPSender tcpSenderToRegistry;
     private TCPReceiverThread tcpReceiverFromRegistry;
+    private HashMap<String, Socket> currentPeer;
+    private boolean peerConnection;
 
 
     private TCPReceiverThread [] tcpReceiverFromMsgingNode;
@@ -42,7 +48,12 @@ public class MessagingNode implements Node {
     public String toString() {
         return "MessagingNode";
     }
-
+    public void setMyIP(String IP){
+        this.myIP = IP;
+    }
+    public String getMyIP(){
+        return this.myIP;
+    }
     //Response to the Command
 
     public void exitOverlay(Socket socketToRegistry){
@@ -60,6 +71,27 @@ public class MessagingNode implements Node {
         } catch (IOException ioe){
             System.out.println("Fail for a MsgNode to send deregister event");
             System.exit(-1);
+        }
+    }
+
+
+    private void sendHelloToPeer(Socket socketToPeer ,String host){
+        Register hello = new Register(listeningPort,getMyIP());
+        byte[] toSend = hello.getBytes();
+        try {
+            TCPSender.sendData(toSend, socketToPeer);
+        } catch (IOException ioe){
+            System.out.println("Fail to send Hello to " + host);
+            System.exit(-1);
+        }
+    }
+
+    private void helloResponseProcess(Register event, Socket socket){
+        String peerHostID = event.getIP() + ":" + event.getPort();
+        synchronized (currentPeer) {
+            this.currentPeer.put(peerHostID, socket);
+            if (currentPeer.size() == 4)
+                System.out.println("All connection has done.");
         }
     }
 
@@ -82,6 +114,49 @@ public class MessagingNode implements Node {
 
     public void messagingNodesListProcess(MessagingNodesList messagingNodesList, Socket socket){
 
+        //initialize the currentPeerList whenever receive the MessagingNodeList
+        currentPeer = new HashMap<String, Socket>();
+        //Connect to all peer nodes on the Messaging Node List
+        for (String host: messagingNodesList.getPeerList()){
+
+            String[] parseHostID = host.split(":");
+            String peerIP = parseHostID[0];
+            String peerPort = parseHostID[1];
+            Socket socketToPeer;
+
+
+
+
+            try {
+                //connect to the peer host
+                socketToPeer = new Socket(peerIP, Integer.parseInt(peerPort));
+                synchronized (currentPeer) {
+                    currentPeer.put(host, socketToPeer);
+                    //To see are all the connections done, "4" here is a simplized way for this assignment
+                    if (currentPeer.size() == 4)
+                        System.out.println("All connection has done");
+                }
+
+                //wait to prevent peer says hello to me(receive the peerlist first from the Registry), but I have not initialize my currentPeer.
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException ie){
+                    System.out.println("Sleep is interrupted in "+ myIP + ":" + listeningPort);
+                }
+                sendHelloToPeer(socketToPeer, host);
+
+                //create the receiverThread for the peer host
+                TCPReceiverThread peerHost = new TCPReceiverThread(socketToPeer, this);
+                peerHost.start();
+
+            } catch (IOException ioe){
+                System.out.println("Fail to connect to the peer host" + host);
+            }
+            //create receiver thread with peerHost
+        }
+
+
+
     }
 
     public void onEvent(Event event, Socket socket){
@@ -89,12 +164,17 @@ public class MessagingNode implements Node {
             case REGISTER_RESPONSE:
                 registerResponseProcess((RegisterResponse)event, socket);
                 break;
+            case REGISTER_REQUEST:
+                System.out.println("received event Hello");
+                helloResponseProcess((Register)event, socket);
+                break;
             case DEREGISTER_RESPONSE:
                 deregisterResponseProcess((DeregisterResponse)event, socket);
                 break;
             case MESSAGINGNODESLIST:
+                System.out.println("received event MessagingNodesList");
                 messagingNodesListProcess((MessagingNodesList)event, socket);
-
+                break;
 
         }
 
@@ -132,7 +212,8 @@ public class MessagingNode implements Node {
 
             // generate register message format
             Register register_msg;
-            register_msg = new Register(msgNode.listeningPort, msgNode.tcpServerThread.getHostName());
+            msgNode.setMyIP( msgNode.tcpServerThread.getHostName());
+            register_msg = new Register(msgNode.listeningPort, msgNode.getMyIP());
 
 
             //send register message

@@ -82,8 +82,6 @@ public class Registry implements Node {
 
     private void registerProcess(Register register, Socket socket) {
 
-
-
         String IP = register.getIP();
         String realIP = socket.getInetAddress().getHostAddress();
         int port = register.getPort();
@@ -136,7 +134,7 @@ public class Registry implements Node {
 
     }
 
-    ;
+
 
     private void deregisterProcess(Deregister deregister, Socket socket) {
 
@@ -193,7 +191,7 @@ public class Registry implements Node {
     }
 
 
-    //Methods to response to command from console
+    //*****************Methods to response to command from console
 
 
     //SETUP-OVERLAY: send MessagingNodeList to the corresponding host
@@ -246,15 +244,24 @@ public class Registry implements Node {
         //put link info into the linkWeight arraylist (ready to send the weight event to all nods)
         // classify link into this.connectToOtherNodes for the event of node_list
 
+
         Random rand = new Random();
-        ArrayList<String> IPAndPortlist = new ArrayList<>(this.registeredNodeList.keySet());
+        ArrayList<String> hostList = new ArrayList<>(this.registeredNodeList.keySet());
+
+        //initiate node nodeConnectsToOtherNodes Hashmap <String, ArrayList<String>>
+        nodeConnectsToOtherNodes = new HashMap<String, ArrayList<String>>();
+        linkWeight = new ArrayList<>();
+        nodeList = new HashMap<>();
+        for (int i = 0; i < hostList.size(); i++)
+            nodeConnectsToOtherNodes.put(hostList.get(i),new ArrayList<>());
+
 
         //relate adjacent nodes
-        for (int i = 0; i < IPAndPortlist.size(); i++){
+        for (int i = 0; i < hostList.size(); i++){
 
             ArrayList<Object> linkInfo = new ArrayList<>();
-            String connectFromMsgNode = IPAndPortlist.get(i%IPAndPortlist.size());
-            String connectToMsgNode = IPAndPortlist.get((i+1)%IPAndPortlist.size());
+            String connectFromMsgNode = hostList.get(i%hostList.size());
+            String connectToMsgNode = hostList.get((i+1)%hostList.size());
             Integer weight = new Integer(rand.nextInt(10)+1);
 
             linkInfo.add(connectFromMsgNode);
@@ -266,11 +273,11 @@ public class Registry implements Node {
         }
 
         //relate every two consecutive nodes
-        for (int i = 0; i < IPAndPortlist.size(); i++){
+        for (int i = 0; i < hostList.size(); i++){
 
             ArrayList<Object> linkInfo = new ArrayList<>();
-            String connectFromMsgNode = IPAndPortlist.get(i%IPAndPortlist.size());
-            String connectToMsgNode = IPAndPortlist.get((i+2)%IPAndPortlist.size());
+            String connectFromMsgNode = hostList.get(i%hostList.size());
+            String connectToMsgNode = hostList.get((i+2)%hostList.size());
             Integer weight = new Integer(rand.nextInt(10)+1);
 
             linkInfo.add(connectFromMsgNode);
@@ -296,8 +303,14 @@ public class Registry implements Node {
         }
     }
 
+    public void listWeight(){
+        for (int i = 0; i < linkWeight.size(); i++){
+            System.out.println(linkWeight.get(i).get(0) + "  " + linkWeight.get(i).get(1) + "  " + linkWeight.get(i).get(2));
+        }
+    }
+    public void sendOverlayLinkWeights(){
 
-
+    }
 
     public void onEvent(Event event, Socket socket){
         switch (event.getType()){
@@ -340,7 +353,13 @@ public class Registry implements Node {
                 registry.listMessagingNodes();
                 continue;
             }
+            if (command.equals("list-weights")){
+                registry.listWeight();
 
+            }
+            if (command.equals("send-overlay-link-weights")){
+                registry.sendOverlayLinkWeights();
+            }
             if (command.startsWith("setup-overlay ")) {
                 String subCommand = command.substring(14);
                 try{
@@ -358,7 +377,6 @@ public class Registry implements Node {
                     continue;
                 }
             }
-
 
 
         }

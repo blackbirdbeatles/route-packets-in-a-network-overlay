@@ -32,7 +32,7 @@ public class MessagingNodesList implements Event {
             //write numberOfPeer's string
 
             for (int i = 0; i < peerList.size(); i++) {
-                byte[] hostBytes = peerList.get(1).getBytes();
+                byte[] hostBytes = peerList.get(i).getBytes();
                 int hostLength = hostBytes.length;
                 dout.writeInt(hostLength);
                 dout.write(hostBytes);
@@ -95,5 +95,8 @@ public class MessagingNodesList implements Event {
     }
     public void copyPeerList(ArrayList<String> peerList){
         this.peerList = peerList;
+    }
+    public ArrayList<String> getPeerList(){
+        return peerList;
     }
 }
